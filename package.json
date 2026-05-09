@@ -1,7 +1,7 @@
 {
   "name": "volleyball-server",
   "version": "1.0.0",
-  "description": "Volleyball scoreboard sync server",
+  "description": "Volleyball scoreboard and aufstellung sync server",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
