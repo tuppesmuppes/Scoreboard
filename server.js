@@ -5,6 +5,8 @@ const SUPABASE_URL = "https://pgftkscaubdqprdvwvmt.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBnZnRrc2NhdWJkcXByZHZ3dm10Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgzMjcyODAsImV4cCI6MjA5MzkwMzI4MH0.pvUMfEMCxwKjBDc3yJ4pG2wcgdElmcjxWeAzMlMxYzU";
 
 // In-memory scoreboard (no persistence needed)
+let tournierState = null;
+
 let scoreState = {
   scoreA: 0, scoreB: 0, setsA: 0, setsB: 0,
   setHistory: [], gameOver: false, winner: null,
@@ -121,6 +123,28 @@ const server = http.createServer(async (req, res) => {
       catch { res.writeHead(400, headers); res.end(JSON.stringify({ error: "Invalid JSON" })); }
       return;
     }
+  }
+
+
+  // Turnier
+  if (req.method === "GET" && req.url.startsWith("/turnier")) {
+    if (tournierState) {
+      res.writeHead(200, headers); res.end(JSON.stringify(tournierState));
+    } else {
+      // Try Supabase
+      const data = await getLib("__turnier__");
+      if (data && data.history) tournierState = data;
+      res.writeHead(200, headers); res.end(JSON.stringify(tournierState || {}));
+    }
+    return;
+  }
+  if (req.method === "PUT" && req.url === "/turnier") {
+    try {
+      tournierState = await readBody(req);
+      await setLib("__turnier__", tournierState);
+      res.writeHead(200, headers); res.end(JSON.stringify({ ok: true }));
+    } catch { res.writeHead(400, headers); res.end(JSON.stringify({ error: "Invalid JSON" })); }
+    return;
   }
 
   if (req.method === "GET" && req.url === "/") {
